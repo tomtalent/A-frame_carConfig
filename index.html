@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>360&deg; Image</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <script src="https://aframe.io/releases/1.0.0/aframe.min.js"></script>
+    <script src="https://unpkg.com/aframe-orbit-controls@1.2.0/dist/aframe-orbit-controls.min.js"></script>
+    <script>
+    AFRAME.registerComponent('carman', {
+      init: function(){
+          let el = this.el;
+          let self = this;
+          self.cars = [];
+
+          el.addEventListener("model-loaded", e =>{
+              let car3D = el.getObject3D('mesh');　
+              if (!car3D){return;}
+            　//console.log('car', car3D);
+              car3D.traverse(function(node){
+                  if (node.isMesh){
+                    node.material.depthWrite = !node.material.transparent;
+                    self.cars.push(node);
+                  }
+              });
+        });
+        el.addEventListener('changecolor', e =>{           　
+          let colorp = e.detail.color;
+          let colorHex = Number(colorp.replace('#', '0x'));
+          let color3D = new THREE.Color(colorHex);
+          for (var i = 0; i < self.cars.length; i++) {
+            if (!self.cars[i].material)
+              return
+            if (self.cars[i].name.includes("meta")) {
+              self.cars[i].material.metalness = 0.7
+              self.cars[i].material.roughness = 0.2
+              self.cars[i].material.color = color3D;
+            }
+          }
+        });
+      }
+
+  });
+   AFRAME.registerComponent('click-listener', {　
+      init: function () {
+        // Listen for click event
+        let self = this;
+        let el = this.el;
+        this.el.addEventListener('click', function (evt) {
+          // Call the Octahedron and trigger it's scalewave animation
+          let car = document.querySelector('#car');
+          let color = el.getAttribute('material', 'color');
+         car.emit('changecolor', color);
+        });
+      }
+
+    });
+  </script>
+</script>
+  </head>
+
+  <body>
+    <a-scene>
+      <a-assets>
+        <img id="plusPhoto" src="Buttons/XR-Hotspot">
+        <a-assets-item id="gltfcar" src="https://cdn.glitch.com/a2e89b50-a717-44c7-9c2d-f89e7da157a3%2Fgsb021xpcar.glb?v=1587455480965"></a-assets-item>
+      </a-assets>
+
+      <a-entity id="mouseCursor" cursor="rayOrigin: mouse" raycaster="objects: .clickable"></a-entity>
+
+      <a-sky src="warehouse.png"></a-sky>
+
+      <a-entity id="car" gltf-model="#gltfcar" scale="1 1 1" carman></a-entity>
+
+       <a-entity  id="redBall"
+        class="clickable" geometry="primitive: sphere; radius: 0.133" position="0.5 0.5 3" material="color: #FF0000" click-listener ></a-entity>
+       <a-entity  id="blueBall"
+        class="clickable" geometry="primitive: sphere; radius: 0.133" position="-0.5 0.5 3" material="color: #0000FF" click-listener ></a-entity>
+
+
+        <a-entity camera orbit-controls="initialPosition: 0 0 5"></a-entity>
+
+    </a-scene>
+  </body>
+</html>
